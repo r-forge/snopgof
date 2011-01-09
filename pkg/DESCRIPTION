@@ -1,0 +1,10 @@
+Package: snopgof
+Type: Package
+Title: Single-observation NOn-Parametric Goodness Of Fit
+Version: 1.0
+Date: 2011-01-05
+Author: Josh Lospinoso
+Maintainer: Josh Lospinoso <lospinos@stats.ox.ac.uk>
+Description: Performs a non-parametric goodness of fit test for single observations from complex distributions
+License: GNU GPL
+LazyLoad: yes
