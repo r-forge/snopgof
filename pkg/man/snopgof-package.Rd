@@ -3,12 +3,13 @@
 \alias{snopgof}
 \docType{package}
 \title{
-What the package does (short line)
-~~ package title ~~
+snopgof -- Single observation, NOn-Parametric Goodness Of Fit
 }
 \description{
-More about what it does (maybe more than one line)
-~~ A concise (1-5 lines) description of the package ~~
+Implementation of a Single observation, NOn-Parametric Goodness Of Fit 
+(SNOPGOF) designed for testing GOF with a single observation supposed 
+to come from a distribution with no available closed form 
+(but can be easily simulated).
 }
 \details{
 \tabular{ll}{
@@ -16,62 +17,87 @@ Package: \tab snopgof\cr
 Type: \tab Package\cr
 Version: \tab 1.0\cr
 Date: \tab 2011-01-05\cr
-License: \tab What license is it under?\cr
+License: \tab GNU GPL\cr
 LazyLoad: \tab yes\cr
 }
-~~ An overview of how to use the package, including the most important ~~
-~~ functions ~~
+
 }
 \author{
-Who wrote it
-
-Maintainer: Who to complain to <yourfault@somewhere.net>
-~~ The author and/or maintainer of the package ~~
+Josh Lospinoso <lospinos@stats.ox.ac.uk>
 }
 \references{
-~~ Literature or other references for background information ~~
+This package represents a work in progress reflecting a working paper by
+Lospinoso and Snijders 2011. Contact the author for details.
 }
-~~ Optionally other standard keywords, one per line, from file KEYWORDS in ~~
-~~ the R documentation directory ~~
-\keyword{ package }
+
+\keyword{ package 
+htest
+nonparametric}
 \seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
+\link{gof.compare}
+\link{gof.optimize}
+\link{gof.preprocess}
+\link{gof}
 }
 \examples{
-library(snopgof)
-## Length of an observation
-variates = 5
-## Number of simulations to use for EDF
-simulations.null = 500
-simulations.alt = 250
-simulations.test = 250
-## Alternate normal distribution, mean
-alt.shift = 0
-## Alternate normal distribution, variance
-alt.scale = .75
+## In this example, we generate a simulated `null' set. We then preprocess this
+## null set. Next, a simulated `alternate' set is used to calibrate a weighting
+## matrix by maximizing power to detect this alternate set. Finally, snopgof
+## is tested to produce receiver operating characteristic (ROC) curves by
+## simulating more draws from the null and alternate distributions and performing
+## the test. This file is currently set up to draw from MVN distributions.
 
-## Generate an observation of length variates ~ Normal(0,I) where I: Identity matrix
-obs <- rnorm(variates)
-## Generate 'simulations' observations of length variates ~ Normal(0,I) where I: Identity matrix
-sim.null <- matrix(rnorm(simulations.null * variates), simulations.null,  variates)
-sim.alt <- matrix(rnorm(simulations.alt * variates, alt.shift, alt.scale), simulations.alt,  variates)
+## Note that these values are set to low numbers to make passing checks quicker.
+## We highly recommend increasing the number of simulations.
 
-# Pre-process the comparisons for the simulations
-(pre.null <- gof.preprocess(sim.null))
+## How many coordinates in the MVN distributions?
+variates = 3
+
+## Number of simulations to use for null and alternate sets:
+simulations.sets = 50
+
+## and for constructing the ROC curves:
+simulations.test = 25
+
+## Parameters of the null MVN distribution:
+null.mean = runif(variates,-10,10)
+temp = matrix(runif(variates^2,-1,1),variates)
+null.cov = temp \%*\% t(temp)
+null.chol = chol(null.cov)
+
+## Parameters of the null MVN distribution:
+alt.mean = runif(variates,0,10)
+temp = matrix(runif(variates^2,-1,1),variates)
+alt.cov = temp \%*\% t(temp)
+alt.chol = chol(alt.cov)
+
+## Generate the null and alternate simulation sets 
+null.sims <- matrix(rnorm(variates*simulations.sets), simulations.sets) \%*\% null.chol + matrix(null.mean,simulations.sets,variates,byrow=TRUE)
+alt.sims <- matrix(rnorm(variates*simulations.sets), simulations.sets) \%*\% alt.chol + matrix(alt.mean,simulations.sets,variates,byrow=TRUE)
+
+# Pre-process the comparisons for the simulations.
+# See ?gof.preprocess for more information.
+(null.preproc <- gof.preprocess(null.sims))
 
 # Optimize the power of the test for a simulated alternative
-(weights <- gof.optimize(pre.null, sim.alt))
+# See ?gof.optimize for more information.
+(weights <- gof.optimize(null.preproc, alt.sims))
 
-## Do a tail-type test when null true
-(res.null <- sapply(1:simulations.test, function(i) gof(rnorm(variates), pre.null, weights)$p))
+## Generate the null and alternate observations for the ROC curve
+null.obs <- matrix(rnorm(variates*simulations.test), simulations.test) \%*\% null.chol + matrix(null.mean,simulations.test,variates,byrow=TRUE)
+alt.obs <- matrix(rnorm(variates*simulations.test), simulations.test) \%*\% alt.chol + matrix(alt.mean,simulations.test,variates,byrow=TRUE)
 
-## Do a tail-type test when null false
-(res.alt <- sapply(1:simulations.test, function(i) gof(rnorm(variates, alt.shift, alt.scale), pre.null, weights)$p))
+# Do a tail-type test
+# See ?gof for more information. Note that it is wrapped by sapply in order to construct the ROC curve
+(res.null <- sapply(1:simulations.test, function(i) gof(null.obs[i,], null.preproc, weights)$p))
 
-## Plot EDF values
-#pdf("~/Desktop/Results3.pdf")
-plot(sort(res.null), type="l", main="EDF of p-values for null simulations")
-lines(sort(res.alt), type="l", col="red")
-#dev.off()
+## Do a tail-type test by drawing from the null distribution
+(res.alt <- sapply(1:simulations.test, function(i) gof(alt.obs[i,], null.preproc, weights)$p))
+
+## Plot the ROC curves
+yaxis = seq(0,1,along.with=res.null)
+plot(yaxis~sort(res.null), type="l", main="Reciever Operating Characteristic (ROC) Curves", 
+	xlab="False Positive", ylab="True Positive (power)")
+lines(yaxis~sort(res.alt), type="l", col="red")
+legend(.25~.75, c("Null","Alternate"), pch=c(19,19), col=c(1,2))
 }

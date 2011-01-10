@@ -1,88 +1,78 @@
 \name{gof.optimize}
 \alias{gof.optimize}
-%- Also NEED an '\alias' for EACH other topic documented here.
+
 \title{
 gof.optimize
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+An optional function which can be used to optimize the weighting matrix against some simulated
+alternative for a specified type one error level.
 }
 \usage{
-gof.optimize(null, alternate, typeOneError = 0.05, weights = rep(1/null$Variates, null$Variates))
+gof.optimize(null, alternate, typeOneError = 0.05, weights = NULL, verbose=FALSE, iterations=50)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
   \item{null}{
-%%     ~~Describe \code{null} here~~
+  A \cite{gof.preprocess} object containing the preprocessed simulated draws from the null distribution.
 }
   \item{alternate}{
-%%     ~~Describe \code{alternate} here~~
+ A matrix of draws from the desired alternate distribution. Power will be maximized to detect draws from
+ this distribution at the specified type one error level. The coordinates correspond to columns so that
+ each draw corresponds to a row.
 }
   \item{typeOneError}{
-%%     ~~Describe \code{typeOneError} here~~
+ The desired level of type one error, i.e., at which level will you decide to reject the null hypothesis
+ in favor of the alternative.
 }
   \item{weights}{
-%%     ~~Describe \code{weights} here~~
+ An initial value for the optimization problem.
+}
+  \item{verbose}{
+ Whether to report more or less incremental information while the annealing is optimizing.
+}
+ \item{iterations}{
+ How many iterations of simulated annealing to attempt. If zero, only the combinations along the diagonal
+ will be considered.
 }
 }
 \details{
-%%  ~~ If necessary, more details than the description above ~~
+The \link{optim} function is used with the simulated annealing option ("SANN") to optimize power for the
+given type one error. The results may or may not be satistfactory, and may require some tweaking.
+This function will try all combinations of diagonal elements as weights in an attempt to find a good
+solution. 
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+A weighting matrix which may be used as input to \link{gof}
 }
 \references{
-%% ~put references to the literature/web site here ~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
+\url{http://stats.ox.ac.uk/~lospinos}
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
+\author{
+Josh Lospinoso
+}
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+\link{snopgof}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+# Standard MVN null distribution
+null.obs = rnorm(3)
 
-## The function is currently defined as
-function(null, alternate, typeOneError=.05, weights=rep(1/null$Variates, null$Variates)) {
-if (class(null) != "gof.preprocess" | class(alternate) != "matrix" | typeOneError <= 0 | typeOneError >= 1) {
-stop("Parameters are invalid.")
-  }
-if (null$Variates != ncol(alternate) | null$Variates != length(weights)) {
-stop("Variates do not match in null and alternate")
-  }
-fn <- function(w) {
-w <- w / sum(w)
-a <- sapply(1:nrow(alternate), function(i) gof.EDFTest(alternate[i,],null,w)$p)
-cat("Testing power, summary of p-values for weighting ",w,":\n ")
-power = sum(a <= typeOneError) / nrow(alternate)
-cat(" w. alpha .01 = ", sum(a < .01) / nrow(alternate), "\n",
-" w. alpha .05 = ", sum(a < .05) / nrow(alternate), "\n",
-" w. alpha .10 = ", sum(a < .10) / nrow(alternate), "\n",
-" w. alpha .25 = ", sum(a < .25) / nrow(alternate), "\n")
-power
-  }
-lower = rep(0.000001, null$Variates)
-upper = rep(1, null$Variates)
-r <- optim(weights,fn,lower=lower,upper=upper,method="L-BFGS-B")
-(weights <- r$par / sum(r$par))
-weights[weights < .001] = 0
-(weights <- r$par / sum(r$par))
-  }
+# Simulate 25 draws from the null distribution
+null.sim = matrix(rnorm(75),25,3)
+
+# Preprocess the simulations
+(null.preproc = gof.preprocess(null.sim))
+
+# Simulate 25 draws from the alternate distribution
+alt.sim = matrix(rnorm(75,2,.5),25,3)
+
+# Optimize the weighting matrix
+(weights <- gof.optimize(null.preproc, alt.sim))
+
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+\keyword{ htest
+nonparametric }

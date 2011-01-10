@@ -1,5 +1,5 @@
 gof.compare <-
-function(observed, simulated, median=FALSE) {
+function(observed, simulated, centralityMeasure="mean") {
 	if (class(observed) != "numeric" | class(simulated) != "matrix") {
 		stop("Parameters are invalid.")
 	}
@@ -8,13 +8,17 @@ function(observed, simulated, median=FALSE) {
 	}
 	variates = length(observed)
 	simulations = dim(simulated)[1]
-	if (median) {
-		centroid = apply(simulated,2,median)
+	if (centralityMeasure=="median") {
+		centralityMeasure = apply(simulated,2,median)
+	} else if (centralityMeasure=="mode") {
+		centralityMeasure = apply(simulated,2,mode)
+	} else if (centralityMeasure=="mean") {
+		centralityMeasure = apply(simulated,2,mean)
 	} else {
-		centroid = apply(simulated,2,mean)
+		stop("Invalid parameter for centroid.")
 	}
 	a <- sapply(0:(variates-1), function (threshold) {sum(sapply(1:simulations, 
-		function (i) sum(abs(observed - centroid) > abs(simulated[i,] - centroid)) == threshold)) 
+		function (i) sum(abs(observed - centralityMeasure) > abs(simulated[i,] - centralityMeasure)) == threshold)) 
 	})
 	class(a) <- "gof.comparison"
 	a

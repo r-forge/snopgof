@@ -1,76 +1,69 @@
 \name{gof}
 \alias{gof}
-%- Also NEED an '\alias' for EACH other topic documented here.
+
 \title{
 gof
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+Performs the nonparametric goodness of fit test on a single
+observation. It returns a test statistic for the observation, a vector
+of simulated test statistics, and a corresponding p value for a two tailed
+test.
 }
 \usage{
-gof(observed, simulated, weights = rep(1/null$Variates, null$Variates))
+gof(observed, simulated, weights = NULL)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
   \item{observed}{
-%%     ~~Describe \code{observed} here~~
+A vector valued numeric corresponding to the single observation over which
+goodness of fit is to be tested
 }
   \item{simulated}{
-%%     ~~Describe \code{simulated} here~~
+A \code{gof.preprocess} object returned by \link{gof.preprocess} corresponding to
+the null distribution.
 }
   \item{weights}{
-%%     ~~Describe \code{weights} here~~
+If null, a default even weighting across the test statistics is used. Otherwise,
+a definite square matrix of length equal to the coordinates in the observation
+may be supplied. See \link{gof.optimize} for a function to optimize power the 
+over the weighting matrix if a particular alternative is in mind.
 }
 }
 \details{
-%%  ~~ If necessary, more details than the description above ~~
+See the working paper by Lospinoso and Snijders (2011) for more information.
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+list(p=p, v.obs=testStatistic.observed, v.sim=testStatistic.simulated)
+\item{p }{p-value corresponding to the probability that, in a hypothetical long run of draws
+from the null distribution, we would observe evidence stronger in favor of rejection than
+the evidence we have currently observed.}
+\item{v.obs }{The test statistic of the observation.}
+\item{v.sim }{The test statistics of the simulated draws from the null distribution.}
 }
 \references{
-%% ~put references to the literature/web site here ~
+\url{http://stats.ox.ac.uk/~lospinos}
 }
 \author{
-%%  ~~who you are~~
+Josh Lospinoso
 }
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
-
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+\link{snopgof}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+# Standard MVN null distribution
+null.obs = rnorm(3)
 
-## The function is currently defined as
-function(observed, simulated, weights=rep(1/null$Variates, null$Variates)) {
-if (class(observed) != "numeric" | class(simulated) != "gof.preprocess") {
-stop("Parameters are invalid.")
-  }
-if (length(observed) != simulated$Variates) {
-stop("Dimensionality of function parameters do not match.")
-  }
-tailComparisons.observed = gof.EDFTest.compare(observed, simulated$Original)
-testStatistic.observed = as.numeric(tailComparisons.observed \%*\% weights)
-testStatistic.simulated = as.numeric(weights \%*\% simulated$Comparisons)
-edf.observed = sum(testStatistic.simulated <= testStatistic.observed) / simulated$Iterations
-p <- 1 - abs(1 - 2 * edf.observed)
-return = list(p=p, v.obs=testStatistic.observed, v.sim=testStatistic.simulated)
-class(return) <- "gof.EDFTestResult"
-return
-  }
+# Simulate 25 draws from the null distribution
+null.sim = matrix(rnorm(75),25,3)
+
+# Preprocess the simulations
+(null.preproc = gof.preprocess(null.sim))
+
+# Conduct the test
+gof(null.obs, null.preproc)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+\keyword{ htest
+nonparametric }
+

@@ -1,60 +1,58 @@
 \name{gof.preprocess}
 \alias{gof.preprocess}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 gof.preprocess
 }
 \description{
-%%  ~~ A concise (1-5 lines) description of what the function does. ~~
+Preprocesses the comparisons within a simulated set of draws from the
+null distribution. These comparisons are used to construct a simulated
+distribution of tail statistics. Since this needs to be done only once,
+it is abstracted from \link{gof.optimize} and \link{gof} for computational
+reasons.
 }
 \usage{
 gof.preprocess(simulated)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
   \item{simulated}{
-%%     ~~Describe \code{simulated} here~~
+A matrix of simulated draws from the null distribution.
+Each column should represent a coordinate so that each row
+corresponds to an independent draw from the null distribution.
 }
 }
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
+
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
-%%  \item{comp2 }{Description of 'comp2'}
-%% ...
+\item{Comparisons }{A matrix of the comparisons for the tail statistics. Each row corresponds to a tail statistic
+which can be interpreted, for row i, as "How many draws from the null observation had values along exactly i 
+coordinates which were closer to the chosen centrality measure (i.e. mean, median, or mode) than this observation?" Thus,
+each column corresponds to an observation.}
+\item{Iterations }{The number of iterations comprising the simulated draws from the null distribution.}
+\item{Variates }{The number of coordinates in the support of the null distribution.}
+\item{Original }{The original simulations given from the null distribution, i.e. \code{simulated}.}
 }
 \references{
-%% ~put references to the literature/web site here ~
-}
-\author{
-%%  ~~who you are~~
-}
-\note{
-%%  ~~further notes~~
+\url{http://stats.ox.ac.uk/~lospinos}
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
+\author{
+Josh Lospinoso
+}
 
 \seealso{
-%% ~~objects to See Also as \code{\link{help}}, ~~~
+\link{snopgof}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+# Standard MVN null distribution
+null.obs = rnorm(3)
 
-## The function is currently defined as
-function(simulated) {
-tailComparisons.simulated = sapply(1:simulations, function(i) gof.EDFTest.compare(simulated[i,], simulated))
-ret <- list(Comparisons=tailComparisons.simulated, Iterations=dim(simulated)[1], Variates=dim(simulated)[2], Original=simulated)
-class(ret) <- "gof.preprocess"
-ret
-  }
+# Simulate 25 draws from the null distribution
+null.sim = matrix(rnorm(75),25,3)
+
+# Preprocess the simulations
+(null.preproc = gof.preprocess(null.sim))
+
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+
+\keyword{ htest
+nonparametric }
