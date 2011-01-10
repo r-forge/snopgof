@@ -54,10 +54,10 @@ nonparametric}
 variates = 3
 
 ## Number of simulations to use for null and alternate sets:
-simulations.sets = 50
+simulations.sets = 100
 
 ## and for constructing the ROC curves:
-simulations.test = 25
+simulations.test = 50
 
 ## Parameters of the null MVN distribution:
 null.mean = runif(variates,-10,10)
@@ -66,9 +66,8 @@ null.cov = temp \%*\% t(temp)
 null.chol = chol(null.cov)
 
 ## Parameters of the null MVN distribution:
-alt.mean = runif(variates,0,10)
-temp = matrix(runif(variates^2,-1,1),variates)
-alt.cov = temp \%*\% t(temp)
+alt.mean = null.mean
+alt.cov = null.cov * 4
 alt.chol = chol(alt.cov)
 
 ## Generate the null and alternate simulation sets 
@@ -81,7 +80,7 @@ alt.sims <- matrix(rnorm(variates*simulations.sets), simulations.sets) \%*\% alt
 
 # Optimize the power of the test for a simulated alternative
 # See ?gof.optimize for more information.
-(weights <- gof.optimize(null.preproc, alt.sims))
+(weights <- gof.optimize(null.preproc, alt.sims, sannIterations=10))
 
 ## Generate the null and alternate observations for the ROC curve
 null.obs <- matrix(rnorm(variates*simulations.test), simulations.test) \%*\% null.chol + matrix(null.mean,simulations.test,variates,byrow=TRUE)

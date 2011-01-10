@@ -8,8 +8,10 @@ gof.optimize
 An optional function which can be used to optimize the weighting matrix against some simulated
 alternative for a specified type one error level.
 }
+
 \usage{
-gof.optimize(null, alternate, typeOneError = 0.05, weights = NULL, verbose=FALSE, iterations=50)
+gof.optimize(null, alternate, typeOneError = 0.05, weights = NULL, 
+	verbose=FALSE, sannIterations=50, permIterations=127)
 }
 
 \arguments{
@@ -31,9 +33,13 @@ gof.optimize(null, alternate, typeOneError = 0.05, weights = NULL, verbose=FALSE
   \item{verbose}{
  Whether to report more or less incremental information while the annealing is optimizing.
 }
- \item{iterations}{
- How many iterations of simulated annealing to attempt. If zero, only the combinations along the diagonal
- will be considered.
+ \item{sannIterations}{
+ How many iterations of simulated annealing to attempt. If zero, only the permutations will be considered
+}
+\item{permIterations}{
+How many permutations to consider, at a maximum. Meaningful thresholds are necessarily in the set 1 3 7 15 
+31 63 127 255 511 1023 2047 4095 8191 16383 32767 65535 131071 262143 524287 1048575. The default is set
+to exhaust seven coordinates. When the theshold is hit, the most inclusive permutations are included first.
 }
 }
 \details{
@@ -42,6 +48,7 @@ given type one error. The results may or may not be satistfactory, and may requi
 This function will try all combinations of diagonal elements as weights in an attempt to find a good
 solution. 
 }
+
 \value{
 A weighting matrix which may be used as input to \link{gof}
 }

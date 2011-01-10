@@ -1,5 +1,6 @@
 gof.optimize <-
-function(null, alternate, typeOneError=.05, weights=NULL, verbose=FALSE, iterations=50) {
+function(null, alternate, typeOneError=.05, weights=NULL, 
+		verbose=FALSE, sannIterations=50, permIterations=127) {
 	if (is.null(weights)) {
 		weights = matrix(sapply(1:null$Variates, 
 						function(i) sapply(1:null$Variates, 
@@ -29,11 +30,50 @@ function(null, alternate, typeOneError=.05, weights=NULL, verbose=FALSE, iterati
 					" w. alpha .25 = ", sum(a < .25) / nrow(alternate), "\n")
 		}
 		objective = p
-		cat("  >> ",objective,"\n")
-		objective # * -1
+		cat("  >> ",objective," (", diag(w) ,")\n")
+		objective * -1
 	}
+	mostPowerfulWeights <- NULL
+	mostPowerfulWeights.p = 0
+	cat("Testing permutations of diagonals:\n  >> POWER  ( Diag. of candidate weight )\n")
+	# Find the depth that we can go in combinations before exceeding
+	# the permutation iterations threshold:
+	maxLevel = 0
+	count = 0
+	while ((count < permIterations) & (maxLevel < null$Variates)) {
+		count = count + choose(null$Variates, null$Variates-maxLevel)
+		maxLevel = maxLevel+1
+	}
+	if (count > permIterations) {
+		maxLevel = maxLevel-1
+		count = count - choose(null$Variates, null$Variates-maxLevel)
+	}
+	## Create the set of weightings:
+	makeMatrixCandidate <- function(vars) {
+		vars = vars[vars!=0]
+		if ( length(vars) != length(unique(vars)) | length(intersect(vars,1:null$Variates)) != length(vars)) {
+			stop("Bad input to make matrix candidate")
+		}
+		X <- matrix(0, null$Variates, null$Variates)
+		if (length(vars) > 0) {
+			diag(X)[vars] = 1/length(vars)
+		} else {
+			diag(X) = 1/null$Variates
+		}
+		X
+	}
+	instructions <- matrix(unlist(sapply(0:(maxLevel-1), function(i) {
+		(X <- combn(null$Variates,null$Variates-i))
+		sapply(1:ncol(X), function(j) {  c(X[,j], rep(0, null$Variates-nrow(X))) } )
+	})),nrow=null$Variates)
+	candidate.results <- sapply(1:ncol(instructions), function(i) {
+				fn(makeMatrixCandidate(instructions[,i]))
+			})
+	mostPowerfulWeights <- makeMatrixCandidate(instructions[,which(candidate.results == min(candidate.results))[1]])
+	mostPowerfulWeights.p <- min(candidate.results)
+
 	cat("Optimizing over weights. Power at alpha = ", typeOneError, ":\n")
-	r <- optim(weights,fn,method="SANN", control=list(maxit=iterations))
-	matrix(r$par, nrow=null$Variates)
+	r <- optim(mostPowerfulWeights, fn,method="SANN", control=list(maxit=sannIterations))
+	r$par
 }
 
