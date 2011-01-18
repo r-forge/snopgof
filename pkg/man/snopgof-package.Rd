@@ -37,6 +37,7 @@ nonparametric}
 \link{gof.compare}
 \link{gof.optimize}
 \link{gof.preprocess}
+\link{gof.mhd}
 \link{gof}
 }
 \examples{
@@ -51,13 +52,13 @@ nonparametric}
 ## We highly recommend increasing the number of simulations.
 
 ## How many coordinates in the MVN distributions?
-variates = 3
+variates = 1
 
 ## Number of simulations to use for null and alternate sets:
-simulations.sets = 100
+simulations.sets = 500
 
 ## and for constructing the ROC curves:
-simulations.test = 50
+simulations.test = 250
 
 ## Parameters of the null MVN distribution:
 null.mean = runif(variates,-10,10)
@@ -66,8 +67,8 @@ null.cov = temp \%*\% t(temp)
 null.chol = chol(null.cov)
 
 ## Parameters of the null MVN distribution:
-alt.mean = null.mean
-alt.cov = null.cov * 4
+alt.mean = null.mean + rep(1, variates)
+alt.cov = null.cov
 alt.chol = chol(alt.cov)
 
 ## Generate the null and alternate simulation sets 
