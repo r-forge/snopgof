@@ -1,6 +1,7 @@
 \name{gof}
 \alias{gof}
-
+\alias{print.gof.result}
+\alias{plot.gof.result}
 \title{
 gof
 }
@@ -61,7 +62,10 @@ null.sim = matrix(rnorm(75),25,3)
 (null.preproc = gof.preprocess(null.sim))
 
 # Conduct the test
-gof(null.obs, null.preproc)
+(x<-gof(null.obs, null.preproc))
+
+# Plot the results
+plot(x)
 }
 
 \keyword{ htest

@@ -1,0 +1,4 @@
+useDynLib(snopgof)
+export(gof.optimize, gof.preprocess, gof)
+
+S3method(print, gof.result)

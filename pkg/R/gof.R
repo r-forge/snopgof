@@ -1,5 +1,11 @@
 gof <-
 function(observed, simulated, weights=NULL) {
+	if (class(observed) != "numeric" | class(simulated) != "gof.preprocess") {
+		stop("Parameters are invalid.")
+	}
+	if (length(observed) != simulated$Variates) {
+		stop("Dimensionality of function parameters do not match.")
+	}
 	if (is.null(weights)) {
 		if (length(observed) > 1) {
 			weights = matrix(sapply(1:simulated$Variates, 
@@ -14,12 +20,6 @@ function(observed, simulated, weights=NULL) {
 		} else {
 			weights = 1
 		}
-	}
-	if (class(observed) != "numeric" | class(simulated) != "gof.preprocess") {
-		stop("Parameters are invalid.")
-	}
-	if (length(observed) != simulated$Variates) {
-		stop("Dimensionality of function parameters do not match.")
 	}
 	tailComparisons.observed = gof.compare(observed, simulated$Original)
 	if (class(simulated$Comparisons) == "integer") {
@@ -39,8 +39,18 @@ function(observed, simulated, weights=NULL) {
 	}
 	edf.observed = sum(testStatistic.simulated <= testStatistic.observed) / simulated$Iterations
 	p <- 1 - abs(1 - 2 * edf.observed)
-	return = list(p=p, v.obs=testStatistic.observed, v.sim=testStatistic.simulated)
+	return = list(p=p, v.obs=testStatistic.observed, v.sim=testStatistic.simulated,
+			Observation=observed, Preprocess=simulated)
 	class(return) <- "gof.result"
 	return
 }
 
+print.gof.result <- function (x, ...) {
+	with(x, cat("snopgof results\nVariates:", Preprocess$Variates ,"\nSimulations:", Preprocess$Iterations ,"\nP-Value:", p,"\n" ))
+}
+
+plot.gof.result <- function (x, ...) {
+	boxplot(as.numeric(x$Preprocess$Original)~rep(1:x$Preprocess$Variates, each=x$Preprocess$Iterations), ...)
+	temp <- (1:x$Preprocess$Variates)
+	lines(x$Observation~temp, col="red", type="l")
+}

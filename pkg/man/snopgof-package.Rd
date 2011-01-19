@@ -41,6 +41,7 @@ nonparametric}
 \link{gof}
 }
 \examples{
+\dontrun{
 ## In this example, we generate a simulated `null' set. We then preprocess this
 ## null set. Next, a simulated `alternate' set is used to calibrate a weighting
 ## matrix by maximizing power to detect this alternate set. Finally, snopgof
@@ -100,4 +101,23 @@ plot(yaxis~sort(res.null), type="l", main="Reciever Operating Characteristic (RO
 	xlab="False Positive", ylab="True Positive (power)")
 lines(yaxis~sort(res.alt), type="l", col="red")
 legend(.25~.75, c("Null","Alternate"), pch=c(19,19), col=c(1,2))
+}
+
+## Just do a simple test and plot:
+## How many coordinates in the MVN distributions?
+variates = 5
+simulations.sets = 100
+
+## Parameters of the null MVN distribution:
+null.mean = runif(variates,-10,10)
+temp = matrix(runif(variates^2,-1,1),variates)
+null.cov = temp \%*\% t(temp)
+null.chol = chol(null.cov)
+
+## Generate the null and alternate simulation sets 
+null.sims <- matrix(rnorm(variates*simulations.sets), simulations.sets) \%*\% null.chol + matrix(null.mean,simulations.sets,variates,byrow=TRUE)
+null.obs <- as.numeric(rnorm(variates) \%*\% null.chol + null.mean)
+pre <- gof.preprocess(null.sims)
+(results <- gof(null.obs, pre))
+plot(results)
 }
