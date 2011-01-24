@@ -11,7 +11,7 @@ it is abstracted from \link{gof.optimize} and \link{gof} for computational
 reasons.
 }
 \usage{
-gof.preprocess(simulated)
+gof.preprocess(simulated, creasingFunction=median)
 }
 
 \arguments{
@@ -20,6 +20,7 @@ A matrix of simulated draws from the null distribution.
 Each column should represent a coordinate so that each row
 corresponds to an independent draw from the null distribution.
 }
+\item{creasingFunction}{Which function is used to center the simulations.}
 }
 
 \value{
@@ -43,15 +44,23 @@ Josh Lospinoso
 \link{snopgof}
 }
 \examples{
+# See ?snopgof for a full description.
+
 # Standard MVN null distribution
-null.obs = rnorm(3)
+m=1000; v=5;
+null.obs = rnorm(v)
 
 # Simulate 25 draws from the null distribution
-null.sim = matrix(rnorm(75),25,3)
+null.sim = matrix(rnorm(m*v),m,v)
 
 # Preprocess the simulations
 (null.preproc = gof.preprocess(null.sim))
 
+# Conduct the test
+(x<-gof(null.obs, null.preproc))
+
+# Plot the results
+plot(x)
 }
 
 \keyword{ htest

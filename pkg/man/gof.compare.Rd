@@ -9,7 +9,7 @@ Used internally to \link{snopgof} to perform the comparisons which form the
 tail statistics.
 }
 \usage{
-gof.compare(observed, simulated, centralityMeasure="mean")
+gof.compare(observed, simulated)
 }
 
 \arguments{
@@ -21,12 +21,12 @@ Must have the same length as simulated has columns.
 Simulated draws from the null distribution. Each row corresponds to
 a draw.
 }
-  \item{centralityMeasure}{
-Which centrality measure to use. Accepts "mean", "median", and "mode."
-}
 }
 \details{
-This function should not need to be called by the typical user.
+This function should not need to be called by the typical user, as a much faster C function
+is used in gof.preprocess.
+Observed and simulated should be pre-centered about some central value before
+being sent to gof.compare.
 }
 \value{
 A matrix of the comparisons for the tail statistics. Each row corresponds to a tail statistic

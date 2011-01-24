@@ -37,7 +37,7 @@ nonparametric}
 \link{gof.compare}
 \link{gof.optimize}
 \link{gof.preprocess}
-\link{gof.mhd}
+\link{gof.mhd.asymptotic}
 \link{gof}
 }
 \examples{
@@ -47,34 +47,25 @@ nonparametric}
 ## matrix by maximizing power to detect this alternate set. Finally, snopgof
 ## is tested to produce receiver operating characteristic (ROC) curves by
 ## simulating more draws from the null and alternate distributions and performing
-## the test. This file is currently set up to draw from MVN distributions.
+## the test.
 
-## Note that these values are set to low numbers to make passing checks quicker.
-## We highly recommend increasing the number of simulations.
+## The file is set up to draw independent Cauchy random variables with a large
+## location shift in the alternate distribution. These are chosen to illustrate
+## a case where the proposed test of Lospinoso and Snijders (2011) outperforms
+## the Mahalanobis distance test statistic.
 
-## How many coordinates in the MVN distributions?
-variates = 1
-
+## How many coordinates to include:
+variates = 3
 ## Number of simulations to use for null and alternate sets:
-simulations.sets = 500
-
-## and for constructing the ROC curves:
-simulations.test = 250
-
-## Parameters of the null MVN distribution:
-null.mean = runif(variates,-10,10)
-temp = matrix(runif(variates^2,-1,1),variates)
-null.cov = temp \%*\% t(temp)
-null.chol = chol(null.cov)
-
-## Parameters of the null MVN distribution:
-alt.mean = null.mean + rep(1, variates)
-alt.cov = null.cov
-alt.chol = chol(alt.cov)
+simulations.sets = 1500
 
 ## Generate the null and alternate simulation sets 
-null.sims <- matrix(rnorm(variates*simulations.sets), simulations.sets) \%*\% null.chol + matrix(null.mean,simulations.sets,variates,byrow=TRUE)
-alt.sims <- matrix(rnorm(variates*simulations.sets), simulations.sets) \%*\% alt.chol + matrix(alt.mean,simulations.sets,variates,byrow=TRUE)
+null.sims <- matrix(rcauchy(simulations.sets*variates), ncol=variates)
+alt.sims <- matrix(rcauchy(simulations.sets*variates, location=10, scale=1), ncol=variates)
+
+## Generate observations from the same distributions
+null.obs <- matrix(rcauchy(simulations.sets*variates), ncol=variates)
+alt.obs <- matrix(rcauchy(simulations.sets*variates, location=10, scale=1), ncol=variates)
 
 # Pre-process the comparisons for the simulations.
 # See ?gof.preprocess for more information.
@@ -82,31 +73,31 @@ alt.sims <- matrix(rnorm(variates*simulations.sets), simulations.sets) \%*\% alt
 
 # Optimize the power of the test for a simulated alternative
 # See ?gof.optimize for more information.
-(weights <- gof.optimize(null.preproc, alt.sims, sannIterations=10))
+(weights <- gof.optimize(null.preproc, alt.sims, sannIterations=50, verbose=TRUE))
 
-## Generate the null and alternate observations for the ROC curve
-null.obs <- matrix(rnorm(variates*simulations.test), simulations.test) \%*\% null.chol + matrix(null.mean,simulations.test,variates,byrow=TRUE)
-alt.obs <- matrix(rnorm(variates*simulations.test), simulations.test) \%*\% alt.chol + matrix(alt.mean,simulations.test,variates,byrow=TRUE)
-
-# Do a tail-type test
+# Do a tail-type test while drawing from the null distribution
 # See ?gof for more information. Note that it is wrapped by sapply in order to construct the ROC curve
-(res.null <- sapply(1:simulations.test, function(i) gof(null.obs[i,], null.preproc, weights)$p))
+res.null <- gof(null.obs, null.preproc, weights)
 
-## Do a tail-type test by drawing from the null distribution
-(res.alt <- sapply(1:simulations.test, function(i) gof(alt.obs[i,], null.preproc, weights)$p))
+## Do a tail-type test while drawing from the alternate distribution
+res.alt <- gof(alt.obs, null.preproc, weights)
 
 ## Plot the ROC curves
-yaxis = seq(0,1,along.with=res.null)
-plot(yaxis~sort(res.null), type="l", main="Reciever Operating Characteristic (ROC) Curves", 
+yaxis = seq(0,1,along.with=res.null$p)
+plot(yaxis~sort(res.null$p), type="l", main="Reciever Operating Characteristic (ROC) Curves", 
 	xlab="False Positive", ylab="True Positive (power)")
-lines(yaxis~sort(res.alt), type="l", col="red")
-legend(.25~.75, c("Null","Alternate"), pch=c(19,19), col=c(1,2))
+
+lines(yaxis~sort(res.null$p.MHD), type="l", col=2)
+lines(yaxis~sort(res.alt$p), type="l", col=3)
+lines(yaxis~sort(res.alt$p.MHD), type="l", col=4)
+legend(.25~.75, c("Null","Null (Mah. Dist.", "Alt.","Alt. (Mah. Dist.)"), pch=c(19,19,19,19), col=c(1,2,3,4))
 }
 
-## Just do a simple test and plot:
+#################################################################################
+## Instead of constructing ROC curves, do a simple single observation test:
 ## How many coordinates in the MVN distributions?
-variates = 5
-simulations.sets = 100
+variates = 10
+simulations.sets = 500
 
 ## Parameters of the null MVN distribution:
 null.mean = runif(variates,-10,10)
@@ -114,7 +105,7 @@ temp = matrix(runif(variates^2,-1,1),variates)
 null.cov = temp \%*\% t(temp)
 null.chol = chol(null.cov)
 
-## Generate the null and alternate simulation sets 
+## Generate the null and alternate simulation sets
 null.sims <- matrix(rnorm(variates*simulations.sets), simulations.sets) \%*\% null.chol + matrix(null.mean,simulations.sets,variates,byrow=TRUE)
 null.obs <- as.numeric(rnorm(variates) \%*\% null.chol + null.mean)
 pre <- gof.preprocess(null.sims)

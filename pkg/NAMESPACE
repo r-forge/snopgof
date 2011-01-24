@@ -1,4 +1,6 @@
 useDynLib(snopgof)
-export(gof.optimize, gof.preprocess, gof)
+export(gof.optimize, gof.preprocess, gof, gof.mhd.asymptotic)
 
 S3method(print, gof.result)
+S3method(print, gof.preprocess)
+S3method(plot, gof.result)

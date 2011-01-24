@@ -11,7 +11,7 @@ alternative for a specified type one error level.
 
 \usage{
 gof.optimize(null, alternate, typeOneError = 0.05, weights = NULL, 
-	verbose=FALSE, sannIterations=50, permIterations=127)
+	verbose=FALSE, sannIterations=1000, permIterations=1023)
 }
 
 \arguments{
@@ -39,7 +39,7 @@ gof.optimize(null, alternate, typeOneError = 0.05, weights = NULL,
 \item{permIterations}{
 How many permutations to consider, at a maximum. Meaningful thresholds are necessarily in the set 1 3 7 15 
 31 63 127 255 511 1023 2047 4095 8191 16383 32767 65535 131071 262143 524287 1048575. The default is set
-to exhaust seven coordinates. When the theshold is hit, the most inclusive permutations are included first.
+to exhaust ten coordinates. When the threshold is hit, the most inclusive permutations are included first.
 }
 }
 \details{
@@ -64,21 +64,7 @@ Josh Lospinoso
 \link{snopgof}
 }
 \examples{
-# Standard MVN null distribution
-null.obs = rnorm(3)
-
-# Simulate 25 draws from the null distribution
-null.sim = matrix(rnorm(75),25,3)
-
-# Preprocess the simulations
-(null.preproc = gof.preprocess(null.sim))
-
-# Simulate 25 draws from the alternate distribution
-alt.sim = matrix(rnorm(75,2,.5),25,3)
-
-# Optimize the weighting matrix
-(weights <- gof.optimize(null.preproc, alt.sim))
-
+# See ?snopgof 
 }
 
 \keyword{ htest
