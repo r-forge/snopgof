@@ -84,7 +84,7 @@ res.alt <- gof(alt.obs, null.preproc, weights)
 
 ## Plot the ROC curves
 yaxis = seq(0,1,along.with=res.null$p)
-plot(yaxis~sort(res.null$p), type="l", main="Reciever Operating Characteristic (ROC) Curves", 
+plot(yaxis~sort(res.null$p), type="l", main="Receiver Operating Characteristic (ROC) Curves", 
 	xlab="False Positive", ylab="True Positive (power)")
 
 lines(yaxis~sort(res.null$p.MHD), type="l", col=2)

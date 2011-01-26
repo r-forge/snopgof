@@ -2,6 +2,7 @@ Package: snopgof
 Type: Package
 Title: Single-observation NOn-Parametric Goodness Of Fit
 Version: 1.0
+Suggests: vioplot
 Date: 2011-01-05
 Author: Josh Lospinoso
 Maintainer: Josh Lospinoso <lospinos@stats.ox.ac.uk>

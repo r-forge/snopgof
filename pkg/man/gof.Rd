@@ -68,7 +68,7 @@ null.sim = matrix(rnorm(m*v),m,v)
 (x<-gof(null.obs, null.preproc))
 
 # Plot the results
-plot(x)
+plot(x, standardize=TRUE)
 }
 
 \keyword{ htest
